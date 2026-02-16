@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePostHog } from "posthog-js/react";
 
 interface Track {
   id: string;
@@ -17,6 +18,7 @@ const tracks: Track[] = [
 ];
 
 export default function ListeningbarPage() {
+  const posthog = usePostHog();
   const [isMinimized, setIsMinimized] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -147,12 +149,14 @@ export default function ListeningbarPage() {
   const playTrack = (track: Track) => {
     setSelectedTrack(track);
     setIsPlaying(true);
+    posthog.capture("track_played", { track_id: track.id, track_name: track.name });
   };
 
   const togglePlayPause = () => {
     if (!selectedTrack) {
       setSelectedTrack(tracks[0]);
       setIsPlaying(true);
+      posthog.capture("track_played", { track_id: tracks[0].id, track_name: tracks[0].name });
     } else {
       setIsPlaying(!isPlaying);
     }
@@ -163,6 +167,7 @@ export default function ListeningbarPage() {
     if (currentIndex > 0) {
       setSelectedTrack(tracks[currentIndex - 1]);
       setIsPlaying(true);
+      posthog.capture("track_played", { track_id: tracks[currentIndex - 1].id, track_name: tracks[currentIndex - 1].name });
     }
   };
 
@@ -171,6 +176,7 @@ export default function ListeningbarPage() {
     if (currentIndex < tracks.length - 1) {
       setSelectedTrack(tracks[currentIndex + 1]);
       setIsPlaying(true);
+      posthog.capture("track_played", { track_id: tracks[currentIndex + 1].id, track_name: tracks[currentIndex + 1].name });
     }
   };
 

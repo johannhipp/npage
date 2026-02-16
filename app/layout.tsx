@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
 import "./globals.css";
 import { LayoutWrapper } from "./components/layout-wrapper";
+import { PostHogProvider } from "./components/posthog-provider";
 
 export const notoSerif = Noto_Serif({
   subsets: ["latin"],
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${notoSerif.variable}`}>
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <PostHogProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </PostHogProvider>
       </body>
     </html>
   );
