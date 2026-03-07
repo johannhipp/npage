@@ -129,7 +129,7 @@ export default function Home() {
             >
               Agent Platform
             </a>{" "}
-            is our bet towards an AI ecosystem that needs better
+            is our bet in an ecosystem that needs better
             fundamentals. Would love to hear your feedback{" "}
             <span ref={smileyRef}>:)</span>
           </p>
