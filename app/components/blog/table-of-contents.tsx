@@ -42,13 +42,15 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
             <a
               href={`#${id}`}
               className={cn(
-                "group relative inline-flex w-fit select-none items-center transition-colors before:pointer-events-none before:absolute before:top-[1.5em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] before:content-[''] hover:before:origin-right hover:before:scale-x-100",
+                "group select-none transition-colors",
                 activeId === id ? "text-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <span>{text}</span>
+              <span className="bg-[length:0%_0.05em] bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-no-repeat transition-[background-size] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] group-hover:bg-[length:100%_0.05em]">
+                {text}
+              </span>
               <svg
-                className="ml-[0.3em] size-[0.55em] translate-y-1 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:transition-none"
+                className="ml-[0.3em] inline-block size-[0.55em] shrink-0 translate-y-1 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:transition-none"
                 fill="none"
                 viewBox="0 0 10 10"
                 xmlns="http://www.w3.org/2000/svg"

@@ -19,11 +19,13 @@ export function PostHeader({ post }: { post: Post }) {
             href={post.author.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex w-fit cursor-pointer select-none items-center text-muted-foreground before:pointer-events-none before:absolute before:top-[1.2em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] before:content-[''] hover:text-foreground hover:before:origin-right hover:before:scale-x-100"
+            className="group inline-flex w-fit cursor-pointer select-none items-center text-muted-foreground transition-colors hover:text-foreground"
           >
-            <span>{post.author.name}</span>
+            <span className="bg-[length:0%_0.05em] bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-no-repeat transition-[background-size] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] group-hover:bg-[length:100%_0.05em]">
+              {post.author.name}
+            </span>
             <svg
-              className="ml-[0.3em] size-[0.55em]"
+              className="ml-[0.3em] inline-block size-[0.55em] shrink-0"
               fill="none"
               viewBox="0 0 10 10"
               xmlns="http://www.w3.org/2000/svg"
