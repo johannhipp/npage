@@ -4,23 +4,21 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-type ElementTag = keyof JSX.IntrinsicElements;
-
-export interface SplitTextProps<TTag extends ElementTag = "span">
-  extends Omit<React.ComponentPropsWithoutRef<TTag>, "children"> {
+export interface SplitTextProps {
   text: string;
-  as?: TTag;
+  as?: keyof JSX.IntrinsicElements;
+  className?: string;
   stagger?: number;
 }
 
-export function SplitText<TTag extends ElementTag = "span">({
+export function SplitText({
   text,
   as,
   className,
   stagger = 0.045,
   ...rest
-}: SplitTextProps<TTag>) {
-  const Component = (as ?? "span") as ElementTag;
+}: SplitTextProps) {
+  const Component = (as ?? "span") as keyof JSX.IntrinsicElements;
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -39,12 +37,12 @@ export function SplitText<TTag extends ElementTag = "span">({
         key={`${char}-${index}`}
         className={cn(
           "inline-block transform transition duration-300 ease-out will-change-transform",
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+          mounted ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         )}
         style={{ transitionDelay: `${index * stagger}s` }}
       >
         {char === " " ? "\u00A0" : char}
       </span>
-    ))
+    )),
   );
 }

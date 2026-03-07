@@ -8,6 +8,7 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "*.{js,ts,jsx,tsx,mdx}",
+    "content/**/*.mdx",
   ],
   theme: {
     extend: {
@@ -21,6 +22,7 @@ module.exports = {
           "Segoe UI Symbol",
           "Noto Color Emoji",
         ],
+        "noto-serif": ["var(--font-noto-serif)", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -64,5 +66,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
