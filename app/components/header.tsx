@@ -8,7 +8,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4 max-w-7xl flex justify-end items-center gap-3">
         <Link
           href="/blog"
-          className="transition-transform duration-150 hover:scale-[1.15]"
+          className="transition-transform duration-150 hover:scale-[1.05]"
         >
           <span className="text-black bg-transparent px-4 py-2 text-sm font-medium hover:opacity-80">
             Blog
@@ -19,7 +19,7 @@ export function Header() {
           href="https://agentplatform.cloud"
           target="_blank"
           rel="noopener noreferrer"
-          className="transition-transform duration-150 hover:scale-[1.15]"
+          className="transition-transform duration-150 hover:scale-[1.05]"
         >
           <span className="text-black bg-transparent px-4 py-2 text-sm font-medium hover:opacity-80">
             Agent Platform

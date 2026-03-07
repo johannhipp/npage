@@ -125,7 +125,7 @@ export default function Home() {
               href="https://agentplatform.cloud"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:opacity-80"
+              className="text-gray-700 hover:opacity-80"
             >
               Agent Platform
             </a>{" "}
