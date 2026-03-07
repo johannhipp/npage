@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type Heading = {
   id: string;
@@ -10,7 +10,7 @@ type Heading = {
 };
 
 export function TableOfContents({ headings }: { headings: Heading[] }) {
-  const [activeId, setActiveId] = useState<string>('');
+  const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -21,7 +21,7 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
           }
         });
       },
-      { rootMargin: '-80px 0px -80% 0px' },
+      { rootMargin: "-80px 0px -80% 0px" },
     );
 
     headings.forEach(({ id }) => {
@@ -35,17 +35,15 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
   if (headings.length === 0) return null;
 
   return (
-    <nav className="absolute right-full mr-8 top-0 hidden w-56 xl:block">
+    <nav className="absolute top-0 right-full mr-8 hidden w-56 xl:block">
       <ul className="space-y-2 text-sm leading-7">
         {headings.map(({ id, text, level }) => (
-          <li key={id} className={cn(level === 3 && 'pl-4')}>
+          <li key={id} className={cn(level === 3 && "pl-4")}>
             <a
               href={`#${id}`}
               className={cn(
-                "group relative inline-flex w-fit items-center select-none transition-colors before:pointer-events-none before:absolute before:left-0 before:top-[1.5em] before:h-[0.05em] before:w-full before:bg-current before:content-[''] before:origin-left before:scale-x-0 before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] hover:before:origin-right hover:before:scale-x-100",
-                activeId === id
-                  ? 'text-foreground'
-                  : 'text-muted-foreground hover:text-foreground',
+                "group relative inline-flex w-fit select-none items-center transition-colors before:pointer-events-none before:absolute before:top-[1.5em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] before:content-[''] hover:before:origin-right hover:before:scale-x-100",
+                activeId === id ? "text-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
               <span>{text}</span>

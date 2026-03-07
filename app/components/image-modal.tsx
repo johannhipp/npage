@@ -1,69 +1,79 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import Image from "next/image"
-import { X } from "lucide-react"
+import { X } from "lucide-react";
+import Image from "next/image";
+import { useEffect } from "react";
 
 interface ImageModalProps {
   images: {
-    src: string
-    alt?: string
-  }[]
-  selectedIndex: number | null
-  onClose: () => void
-  onNavigate: (index: number) => void
+    src: string;
+    alt?: string;
+  }[];
+  selectedIndex: number | null;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
 }
 
 export function ImageModal({ images, selectedIndex, onClose, onNavigate }: ImageModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose()
+        onClose();
       } else if (e.key === "ArrowLeft" && selectedIndex !== null) {
-        onNavigate((selectedIndex - 1 + images.length) % images.length)
+        onNavigate((selectedIndex - 1 + images.length) % images.length);
       } else if (e.key === "ArrowRight" && selectedIndex !== null) {
-        onNavigate((selectedIndex + 1) % images.length)
+        onNavigate((selectedIndex + 1) % images.length);
       }
-    }
+    };
 
-    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener("keydown", handleKeyDown);
 
     // Prevent scrolling when modal is open
     if (selectedIndex !== null) {
-      document.body.style.overflow = "hidden"
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-      document.body.style.overflow = ""
-    }
-  }, [selectedIndex, onClose, onNavigate, images.length])
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [selectedIndex, onClose, onNavigate, images.length]);
 
-  if (selectedIndex === null) return null
+  if (selectedIndex === null) return null;
 
-  const selectedImage = images[selectedIndex]
+  const selectedImage = images[selectedIndex];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onClose();
+      }}
+    >
       <div
-        className="relative w-full h-full max-w-5xl max-h-[90vh] flex items-center justify-center p-4"
+        className="relative flex h-full max-h-[90vh] w-full max-w-5xl items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
+        role="presentation"
       >
         <button
-          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+          type="button"
+          className="absolute top-4 right-4 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
           onClick={onClose}
           aria-label="Close"
         >
           <X size={24} />
         </button>
 
-        <div className="relative w-full h-full flex items-center justify-center">
-          <div className="relative w-full h-full">
+        <div className="relative flex h-full w-full items-center justify-center">
+          <div className="relative h-full w-full">
             <Image
               src={selectedImage.src || "/placeholder.svg"}
               alt={selectedImage.alt || ""}
               fill
-              className="object-contain animate-in fade-in zoom-in-95 duration-300"
+              className="fade-in zoom-in-95 animate-in object-contain duration-300"
               sizes="(max-width: 768px) 100vw, 90vw"
               priority
             />
@@ -71,11 +81,10 @@ export function ImageModal({ images, selectedIndex, onClose, onNavigate }: Image
         </div>
 
         {/* Image counter */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
           Image {selectedIndex + 1} of {images.length}
         </div>
       </div>
     </div>
-  )
+  );
 }
-

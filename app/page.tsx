@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SplitText } from "@/components/ui/split-text";
 import CircularGallery from "@/components/CircularGallery";
+import { SplitText } from "@/components/ui/split-text";
 
 const galleryItems = [
   { image: "/images/photo0.jpg", text: "" },
@@ -72,8 +72,9 @@ export default function Home() {
     <div className="min-h-screen md:h-screen md:overflow-hidden">
       {lineStyle && !isMobile && (
         <svg
-          className="fixed inset-0 pointer-events-none z-40"
+          className="pointer-events-none fixed inset-0 z-40"
           style={{ width: "100%", height: "100%" }}
+          aria-hidden="true"
         >
           <defs>
             <marker
@@ -109,25 +110,23 @@ export default function Home() {
           <SplitText
             as="h1"
             text="Johann Hipp"
-            className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl font-[family-name:var(--font-noto-serif)]"
+            className="font-[family-name:var(--font-noto-serif)] font-extrabold text-4xl text-gray-900 tracking-tight sm:text-5xl md:text-6xl"
           />
-          <p className="text-gray-500 mt-6 max-w-xl mx-auto">
-            still trying to figure all of this out. love ultrarunning, trad
-            climbing and alpine mountaineering. authenticity is all that
-            matters.
+          <p className="mx-auto mt-6 max-w-xl text-gray-500">
+            still trying to figure all of this out. love ultrarunning, trad climbing and alpine
+            mountaineering. authenticity is all that matters.
           </p>
-          <div className="max-w-xl mx-auto mt-4 mb-4 flex justify-center">
-            <hr className="border-gray-200 w-2/3" />
+          <div className="mx-auto mt-4 mb-4 flex max-w-xl justify-center">
+            <hr className="w-2/3 border-gray-200" />
           </div>
-          <p className="text-gray-500 max-w-xl mx-auto">
-            currently working on AgentOS, an agentic operating system.
-            we're running a research preview and would love to hear your
-            feedback <span ref={smileyRef}>:)</span>
+          <p className="mx-auto max-w-xl text-gray-500">
+            currently working on AgentOS, an agentic operating system. we're running a research
+            preview and would love to hear your feedback <span ref={smileyRef}>:)</span>
           </p>
         </header>
       </div>
 
-      <div className="mt-3 relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
+      <div className="relative mt-3 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
         <CircularGallery items={galleryItems} bend={2} />
       </div>
     </div>

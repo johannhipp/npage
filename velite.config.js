@@ -1,13 +1,13 @@
-import { defineConfig, defineCollection, s } from 'velite';
-import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeSlug from "rehype-slug";
+import { defineCollection, defineConfig, s } from "velite";
 
 const posts = defineCollection({
-  name: 'Post',
-  pattern: 'blog/**/*.mdx',
+  name: "Post",
+  pattern: "blog/**/*.mdx",
   schema: s.object({
     title: s.string().max(120),
-    slug: s.slug('blog'),
+    slug: s.slug("blog"),
     description: s.string().max(300),
     date: s.isodate(),
     published: s.boolean().default(true),
@@ -22,17 +22,17 @@ const posts = defineCollection({
 });
 
 export default defineConfig({
-  root: 'content',
+  root: "content",
   output: {
-    data: '.velite',
-    assets: 'public/static',
-    base: '/static/',
-    name: '[name]-[hash:6].[ext]',
+    data: ".velite",
+    assets: "public/static",
+    base: "/static/",
+    name: "[name]-[hash:6].[ext]",
     clean: true,
   },
   collections: { posts },
   mdx: {
-    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'wrap' }]],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]],
     remarkPlugins: [],
   },
 });

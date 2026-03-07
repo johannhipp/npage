@@ -1,11 +1,11 @@
-import type React from "react";
 import type { Metadata } from "next";
 import { Noto_Serif } from "next/font/google";
+import type React from "react";
 import "./globals.css";
 import { LayoutWrapper } from "./components/layout-wrapper";
 import { PostHogProvider } from "./components/posthog-provider";
 
-export const notoSerif = Noto_Serif({
+const notoSerif = Noto_Serif({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-noto-serif",

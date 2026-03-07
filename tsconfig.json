@@ -6,7 +6,7 @@
       "esnext"
     ],
     "allowJs": true,
-    "target": "ES6",
+    "target": "ES2017",
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -26,7 +26,9 @@
       "@/*": [
         "./*"
       ],
-      "#velite": ["./.velite"]
+      "#velite": [
+        "./.velite"
+      ]
     }
   },
   "include": [
@@ -34,7 +36,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "dist/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

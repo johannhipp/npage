@@ -1,27 +1,25 @@
-'use client';
+"use client";
 
-import type { Post } from '#velite';
+import type { Post } from "#velite";
 
 export function PostHeader({ post }: { post: Post }) {
-  const formattedDate = new Date(post.date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
-    <header className="mb-4 border-b border-border pb-4">
-      <h1 className="font-noto-serif text-4xl font-semibold tracking-tight mb-4">
-        {post.title}
-      </h1>
-      <p className="text-xl text-muted-foreground mb-4">{post.description}</p>
-      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+    <header className="mb-4 border-border border-b pb-4">
+      <h1 className="mb-4 font-noto-serif font-semibold text-4xl tracking-tight">{post.title}</h1>
+      {post.description && <p className="mb-4 text-muted-foreground text-xl">{post.description}</p>}
+      <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
         {post.author.url ? (
           <a
             href={post.author.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex w-fit items-center select-none text-muted-foreground cursor-pointer before:pointer-events-none before:absolute before:left-0 before:top-[1.2em] before:h-[0.05em] before:w-full before:bg-current before:content-[''] before:origin-left before:scale-x-0 before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] hover:before:origin-right hover:before:scale-x-100 hover:text-foreground"
+            className="group relative inline-flex w-fit cursor-pointer select-none items-center text-muted-foreground before:pointer-events-none before:absolute before:top-[1.2em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] before:content-[''] hover:text-foreground hover:before:origin-right hover:before:scale-x-100"
           >
             <span>{post.author.name}</span>
             <svg

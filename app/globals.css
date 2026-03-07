@@ -4,12 +4,12 @@
 
 /* Smooth font rendering */
 * {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Dot pattern background */
 body {
-    background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
-    background-size: 24px 24px;
+  background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+  background-size: 24px 24px;
 }

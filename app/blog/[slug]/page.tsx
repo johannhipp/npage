@@ -1,8 +1,8 @@
-import { notFound } from 'next/navigation';
-import { posts } from '#velite';
-import { PostHeader } from '@/app/components/blog/post-header';
-import { PostContent } from '@/app/components/blog/post-content';
-import { TableOfContents } from '@/app/components/blog/table-of-contents';
+import { notFound } from "next/navigation";
+import { posts } from "#velite";
+import { PostContent } from "@/app/components/blog/post-content";
+import { PostHeader } from "@/app/components/blog/post-header";
+import { TableOfContents } from "@/app/components/blog/table-of-contents";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -21,36 +21,33 @@ export async function generateMetadata({ params }: Props) {
     openGraph: {
       title: post.title,
       description: post.description,
-      type: 'article',
+      type: "article",
       publishedTime: post.date,
       authors: [post.author.name],
     },
   };
 }
 
-function extractHeadings(
-  content: string,
-): { id: string; text: string; level: number }[] {
+function extractHeadings(content: string): { id: string; text: string; level: number }[] {
   const headingRegex = /^(#{2,3})\s+(.+)$/gm;
   const headings: { id: string; text: string; level: number }[] = [];
-  let match;
+  let match: RegExpExecArray | null = headingRegex.exec(content);
 
-  while ((match = headingRegex.exec(content)) !== null) {
+  while (match !== null) {
     const level = match[1].length;
     const text = match[2].trim();
     const id = text
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-');
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
     headings.push({ id, text, level });
+    match = headingRegex.exec(content);
   }
 
   return headings;
 }
 
-export default async function PostPage({
-  params,
-}: Props): Promise<React.JSX.Element> {
+export default async function PostPage({ params }: Props): Promise<React.JSX.Element> {
   const { slug } = await params;
   const post = posts.find((p) => p.slug === slug && p.published);
 
