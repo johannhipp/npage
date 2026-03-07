@@ -1,0 +1,402 @@
+---
+title: 'Unbricking a Lenovo Tab M10 with Nothing but a Mac and Stubbornness'
+slug: 'unbricking-a-lenovo-tab'
+description: 'A chronicle of trying every possible approach to bypass FRP on a Unisoc T610 tablet from macOS, including USB protocol hacking via Termux on a Pixel phone.'
+date: 2026-03-07
+published: true
+author:
+  name: 'Johann'
+  url: 'https://x.com/jhipp_'
+tags:
+  - hardware
+  - android
+  - reverse-engineering
+---
+
+A Lenovo Tab M10 3rd Gen showed up at my desk, stuck at the boot logo. Someone had done a factory reset and triggered FRP lock, then somehow also managed to brick it in the process. My job: get it working again and bypass the FRP so it could be used without the original Google account.
+
+Spoiler: the tablet is now functional but still FRP-locked. We got very close. Here's everything that was tried, why it failed, and what would actually work if you have the right hardware.
+
+---
+
+## Identifying the hardware
+
+First problem: nobody knew what chipset was in this thing. Initial guesses were Qualcomm or MediaTek, both wrong. It's a Unisoc Tiger T610 (UMS512, also called SharkL5Pro). That matters a lot because Unisoc uses a completely different flashing protocol called Spreadtrum BSL, and the tooling ecosystem is much thinner than Qualcomm's EDL or MediaTek's BROM.
+
+The device was already entering Spreadtrum download mode automatically when plugged in:
+
+```
+VID: 1782
+PID: 4D00
+```
+
+That black screen with no display output is correct for download mode. It's not crashed. The device is waiting for a host to send FDL (Flash Download Loader) stages over USB.
+
+The firmware came from a PAC file: `TB328FU_S000027_220301_ROW` (Android 11). PAC files are Spreadtrum's firmware container format. Unpacking it gives you all the partition images: `fdl1-sign.bin`, `fdl2-sign.bin`, `boot.img`, `super.img`, and the rest.
+
+Key properties from the boot ramdisk, for reference:
+
+```
+ro.product.device=TB328FU
+ro.board.platform=ums512
+ro.product.hardware=ums512_1h10
+ro.oem_unlock_supported=1
+ro.frp.pst=/dev/block/by-name/persist
+ro.build.ab_update=true
+ro.virtual_ab.enabled=true
+ro.treble.enabled=true
+sys.usb.controller=musb-hdrc.0.auto
+```
+
+The FRP partition is `persist`. The device uses A/B partitions (current slot: `a`). OEM unlock is supported in principle. All good signs, in theory.
+
+---
+
+## The macOS USB dead end
+
+The Spreadtrum BSL protocol works over USB bulk transfers. The host sends FDL1, the device executes it from RAM, then the host sends FDL2, and from there you can read/write/erase partitions. Simple enough. The problem is that every tool that implements this protocol is built for Linux.
+
+Two forks of `spd_dump` were tried:
+
+**ilyakurdyukov fork:**
+```
+libusb_open_device failed
+```
+
+**TomKing062 fork:**
+```
+CHECK_BAUD timeout
+```
+
+Both fail at the USB layer. To figure out whether this was a driver conflict or something deeper, a custom diagnostic tool was written:
+
+```c
+// usb_connect.c — probes the Spreadtrum download mode interface
+libusb_device_handle *handle;
+int r = libusb_open(dev, &handle);
+// r == 0, device opens fine
+
+r = libusb_claim_interface(handle, 0);
+// r == 0, interface claimed
+
+// Send a bulk OUT to EP 0x06
+unsigned char buf[4] = {0x7e, 0x00, 0x00, 0x7e};
+int transferred;
+r = libusb_bulk_transfer(handle, 0x06, buf, 4, &transferred, 5000);
+// r == 0, transferred == 4 — send succeeds
+
+// Wait for response on EP 0x85
+r = libusb_bulk_transfer(handle, 0x85, buf, 64, &transferred, 5000);
+// LIBUSB_ERROR_TIMEOUT — device never responds
+```
+
+Sends succeed. The device never responds. This isn't a CDC ACM driver conflict (SIP-protected or otherwise). The macOS USB stack just doesn't handle the Spreadtrum download mode protocol correctly at the bulk transfer level. The device receives the bytes but doesn't respond.
+
+QEMU with USB passthrough was also tried. QEMU uses libusb on the macOS host for USB passthrough, so it hits the exact same wall. Running Linux inside QEMU doesn't help when the USB stack underneath is still macOS.
+
+macOS is a dead end for Spreadtrum flashing. That's just the reality.
+
+---
+
+## The device comes back
+
+After some button combination experiments, the tablet spontaneously started booting into Android normally. Good news: it's not bricked anymore. Bad news: it's FRP-locked.
+
+FRP (Factory Reset Protection) means the setup wizard demands you sign in with the Google account that was previously on the device. You can't skip it. You can't reach Settings. The bootloader is locked. This is the actual problem now.
+
+---
+
+## 14 FRP bypass attempts
+
+Everything documented online was tried, plus some things that weren't. Here's the full list.
+
+### The obvious stuff (all failed)
+
+**TalkBack accessibility bypass:** Patched on this build. The "Voice Commands" option isn't in the TalkBack menu. All L-gesture directions (down-right, right-up, up-left, left-up) were tried. None escape the setup wizard.
+
+**Gboard keyboard trick:** Long-pressing the globe key shows two keyboard layouts but no "Language Settings" option.
+
+**Recovery factory reset:** "Wipe data/factory reset" in recovery doesn't clear FRP. This is by design. FRP lives in the `persist` partition, which the recovery wipe doesn't touch.
+
+**fastboot erase frp:**
+```bash
+fastboot erase frp
+# FAILED (remote: 'Flashing Lock Flag is locked')
+```
+
+**fastboot oem unlock:**
+```bash
+fastboot oem unlock
+# FAILED (remote: 'Unlock bootloader fail')
+```
+OEM unlock has to be enabled in Developer Options first, which requires getting past FRP. Circular dependency.
+
+**fastboot flashing unlock:**
+```bash
+fastboot flashing unlock
+# FAILED (remote: 'unknown cmd')
+```
+Not supported on this device.
+
+**ADB sideload unsigned zip:**
+```
+Signature verification failed
+```
+Recovery won't sideload without a valid signature.
+
+**fastboot oem commands:**
+```bash
+fastboot oem reboot-edl
+# FAILED (remote: 'unknown cmd')
+fastboot oem download
+# FAILED (remote: 'unknown cmd')
+fastboot oem spd
+# FAILED (remote: 'unknown cmd')
+```
+
+### Boot image patching (five attempts, all failed)
+
+This is where things got interesting. `fastboot boot <image>` accepts unsigned images on a locked bootloader. That's a real capability. The idea: patch the ramdisk to change FRP behavior, boot the patched image, profit.
+
+A full pipeline was built for this since it was being done repeatedly:
+
+```python
+# Parse Android boot image v2 header
+BOOT_MAGIC = b'ANDROID!'
+with open('boot.img', 'rb') as f:
+    magic = f.read(8)
+    assert magic == BOOT_MAGIC
+    kernel_size = struct.unpack('<I', f.read(4))[0]
+    kernel_addr = struct.unpack('<I', f.read(4))[0]
+    ramdisk_size = struct.unpack('<I', f.read(4))[0]
+    ramdisk_addr = struct.unpack('<I', f.read(4))[0]
+    # ... etc
+
+# Extract ramdisk
+# ramdisk is gzip-compressed cpio archive
+subprocess.run(['gunzip', '-c', 'ramdisk.gz'], stdout=open('ramdisk.cpio', 'wb'))
+os.makedirs('ramdisk_out', exist_ok=True)
+subprocess.run(['cpio', '-i', '-d', '-F', '../ramdisk.cpio'], cwd='ramdisk_out')
+
+# Patch properties
+with open('ramdisk_out/prop.default', 'r') as f:
+    props = f.read()
+props = props.replace('ro.debuggable=0', 'ro.debuggable=1')
+props = props.replace('ro.adb.secure=1', 'ro.adb.secure=0')
+# ... etc
+
+# Repack
+subprocess.run(['find', '.', '-print0'], cwd='ramdisk_out',
+               stdout=open('files.txt', 'wb'))
+subprocess.run(['cpio', '--null', '-o', '-H', 'newc'],
+               stdin=open('files.txt', 'rb'),
+               stdout=open('ramdisk_new.cpio', 'wb'),
+               cwd='ramdisk_out')
+subprocess.run(['gzip', '-9', 'ramdisk_new.cpio'])
+```
+
+Five different patched images were built and tested:
+
+**Attempt 8: ADB enabled**
+
+Patched `ro.debuggable=1`, `ro.adb.secure=0`, `persist.sys.usb.config=mtp,adb` into `prop.default`. `fastboot boot` accepted the image. It booted. No USB enumeration. ADB never showed up.
+
+**Attempt 9: FRP erase in init.rc + permissive SELinux**
+
+Added a service to `init.rc` to zero out the persist partition on boot:
+
+```
+service frp_erase /system/bin/dd if=/dev/zero of=/dev/block/by-name/persist bs=4096
+    oneshot
+    seclabel u:r:shell:s0
+```
+
+Also added `androidboot.selinux=permissive` to the kernel cmdline. SELinux still blocked the write. Permissive mode in the kernel cmdline isn't enough when the system partition enforces its own policy at runtime.
+
+**Attempt 10: Redirect ro.frp.pst to /dev/null**
+
+```
+ro.frp.pst=/dev/null
+```
+
+The system partition overrides boot ramdisk properties at runtime. The ramdisk value doesn't stick. The system partition wins.
+
+**Attempt 11: ro.setupwizard.mode=OPTIONAL + userdebug**
+
+```
+ro.setupwizard.mode=OPTIONAL
+ro.build.type=userdebug
+```
+
+Same problem. System partition wins. The setup wizard still runs in FRP mode.
+
+**Attempt 12: Everything combined**
+
+Threw all of it at once: ADB enabled, SELinux permissive, FRP redirect, userdebug variant, init.rc wipe command. Still FRP-locked. The system partition overrides too much.
+
+**Attempt 13: Corrupt boot image to force download mode**
+
+Intentionally corrupted the boot image hoping the bootloader would fall into a recoverable download mode. It doesn't. It falls back to the internal partitions instead.
+
+The key finding from all of this: `fastboot boot <image>` accepts unsigned images on a locked bootloader. That's genuinely useful. But every ramdisk property change gets overridden by the system partition at runtime, so you can't change FRP behavior this way without also flashing the system partition, which requires an unlocked bootloader.
+
+---
+
+## Termux USB OTG on a Pixel 7 Pro
+
+Since macOS can't talk to the Spreadtrum download mode interface, the next idea was to use an Android phone as the flash host. Android runs Linux. In theory, its USB stack should handle the Spreadtrum protocol correctly.
+
+The setup: Termux from F-Droid, Termux:API from F-Droid, USB OTG cable connecting a Pixel 7 Pro to the tablet, TomKing062 fork of spd_dump compiled in Termux.
+
+### Attempt 1: Stock spd_dump
+
+```bash
+termux-usb -e './spd_dump --usb-fd fdl fdl1-sign.bin 0x5500 fdl fdl2-sign.bin 0x9efffe00 erase_partition persist reset' /dev/bus/usb/001/003
+```
+
+```
+libusb_claim_interface failed : LIBUSB_ERROR_NO_DEVICE
+```
+
+The device was detected (VID 1782, PID 4D00). The fd was successfully wrapped via `libusb_wrap_sys_device`. But claiming the USB interface failed.
+
+Root cause: `LIBUSB_DETACH=1` is the default in `common.h`. On Android, calling `libusb_detach_kernel_driver()` on a Termux-wrapped fd corrupts the device handle. Android's USB Host API already detaches the kernel driver before handing the fd to Termux, so the detach call is both unnecessary and destructive. TomKing062 acknowledged this in [issue #22](https://github.com/TomKing062/spreadtrum_flash/issues/22).
+
+### Attempt 2: Disable kernel driver detach
+
+```bash
+sed -i 's/LIBUSB_DETACH 1/LIBUSB_DETACH 0/' common.h
+make clean && make
+```
+
+```
+libusb_control_transfer failed : LIBUSB_ERROR_IO
+```
+
+Got past the interface claim. Now fails on the CDC ACM `SET_CONTROL_LINE_STATE` control transfer:
+
+```
+bmRequestType: 0x21
+bRequest: 34 (SET_CONTROL_LINE_STATE)
+wValue: 0x0601
+```
+
+This is a serial port initialization command, not part of the Spreadtrum BSL protocol. It fails because Android's kernel blocks `USBDEVFS_SUBMITURB` for control endpoint (EP0) transfers on non-rooted devices.
+
+### Attempt 3: Make control transfer non-fatal
+
+```bash
+sed -i 's/if (ret < 0) ERR_EXIT("libusb_control_transfer/if (ret < 0) DBG_LOG("libusb_control_transfer WARNING (non-fatal)/' common.c
+make clean && make
+```
+
+```
+usb_send failed : LIBUSB_ERROR_IO
+```
+
+Got past the control transfer (now just a warning). The actual Spreadtrum BSL bulk transfer, the first `CMD_CHECK_BAUD` command, also fails with IO error.
+
+This is the same `USBDEVFS_SUBMITURB` restriction. On a non-rooted Pixel 7 Pro, Android's kernel blocks userspace USB bulk OUT transfers submitted through libusb. The USB endpoints for this device are:
+
+```
+IN:  0x85
+OUT: 0x06
+```
+
+Reads work fine (device descriptor, VID/PID). Writes don't. The Android kernel's USB host security model blocks `USBDEVFS_SUBMITURB` for both control and bulk OUT URBs when the process doesn't have `CAP_SYS_ADMIN` (root).
+
+So: three patches to spd_dump, three different error messages, and we're still blocked. The Termux approach gets you all the way to USB device detection, permission grant, interface claiming, and endpoint discovery. Only the final bulk write is blocked by Android's kernel USB security.
+
+---
+
+## What would actually work
+
+If you have a Linux PC (real Linux, not a VM), this is the full procedure:
+
+### Step 1: Enter download mode
+
+Power off the tablet. Hold Vol Up + Vol Down, plug USB while holding, keep holding for 15 seconds. Screen stays black. That's correct.
+
+Download mode has a very short timeout before the device drops off USB, so have the command ready to run immediately.
+
+### Step 2: Erase FRP
+
+```bash
+sudo ./spd_dump fdl fdl1-sign.bin 0x5500 fdl fdl2-sign.bin 0x9efffe00 erase_partition persist reset
+```
+
+FDL addresses:
+- FDL1 base: `0x5500`
+- FDL2 base: `0x9EFFFE00`
+
+### Step 3: Unlock the bootloader
+
+Boot the tablet and complete setup without signing into a Google account. Then:
+
+```bash
+# Enable Developer Options (tap Build Number 7 times in About tablet)
+# Enable USB debugging and OEM unlocking in Developer Options
+
+adb reboot bootloader
+fastboot flashing unlock
+# Confirm on tablet screen — this wipes all data
+```
+
+### Step 4: Flash a GSI ROM
+
+There are two different fastboot modes on Unisoc. Hardware fastboot (vol-up + power button combo) and fastbootd (`fastboot reboot fastboot`). Logical partition operations require fastbootd.
+
+```bash
+# From Android with USB debugging:
+adb reboot bootloader
+
+# In hardware fastboot — unlock:
+fastboot flashing unlock
+# confirm on device
+
+# Reboot into fastbootd (required for logical partitions):
+fastboot reboot fastboot
+
+# Disable vbmeta verification:
+fastboot flash --disable-verity --disable-verification vbmeta vbmeta.img
+
+# Confirm active slot:
+fastboot getvar current-slot   # should say "a"
+
+# Free up space in super partition:
+fastboot delete-logical-partition product_a
+fastboot delete-logical-partition product_b
+
+# Flash the GSI (must be ARM64, A/B variant):
+fastboot flash system <gsi-image>.img
+
+# Wipe userdata:
+fastboot -w
+
+# Reboot:
+fastboot reboot
+```
+
+**Confirmed working:** Project Elixir v4.2 (Android 14, `arm64_bgN`)
+
+**Also works:** LineageOS 21 by Andy Yan (Android 14, `arm64_bvN`)
+
+**Don't use:** Pixel Experience, AncientROM. Both lock at the face unlock setup step with no bypass.
+
+If you have a rooted Android phone instead of a Linux PC, root gives `CAP_SYS_ADMIN`, which bypasses the USB write restriction:
+
+```bash
+su -c './spd_dump fdl fdl1-sign.bin 0x5500 fdl fdl2-sign.bin 0x9efffe00 erase_partition persist reset'
+```
+
+Windows with SPD Flash Tool also works natively.
+
+---
+
+## Where things stand
+
+The tablet works. It's stuck behind FRP. Every software approach and every USB approach available without a Linux PC or rooted Android phone has been exhausted. The Termux approach on the Pixel 7 Pro got further than expected, but Android's kernel USB security is a hard wall without root.
+
+The full procedure is documented. The firmware is extracted. The spd_dump patches are written. If you have a Linux machine or a rooted phone, you can finish this in about ten minutes.
+
+All the tools and firmware files are at [github.com/t3nsed/lenovo-tab-m10-unbrick](https://github.com/t3nsed/lenovo-tab-m10-unbrick).
