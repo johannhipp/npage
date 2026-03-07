@@ -19,7 +19,7 @@ export function Header() {
           className="transition-transform duration-150 hover:scale-[1.05]"
         >
           <span className="bg-transparent px-4 py-2 font-medium text-black text-sm hover:opacity-80">
-            AgentOS
+            Agent Platform
           </span>
         </Link>
       </div>

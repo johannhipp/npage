@@ -32,7 +32,7 @@ export default function Home() {
 
     const updateLine = () => {
       const smiley = smileyRef.current;
-      const button = document.getElementById("agentos-button");
+      const button = document.getElementById("agent-platform-button");
 
       if (smiley && button) {
         const smileyRect = smiley.getBoundingClientRect();
@@ -120,8 +120,18 @@ export default function Home() {
             <hr className="w-2/3 border-gray-200" />
           </div>
           <p className="mx-auto max-w-xl text-gray-500">
-            currently working on AgentOS, an agentic operating system. we're running a research
-            preview and would love to hear your feedback <span ref={smileyRef}>:)</span>
+            We've pivoted -{" "}
+            <a
+              href="https://agentplatform.cloud"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-700 hover:opacity-80"
+            >
+              Agent Platform
+            </a>{" "}
+            is our bet towards an AI ecosystem that needs better
+            fundamentals. Would love to hear your feedback{" "}
+            <span ref={smileyRef}>:)</span>
           </p>
         </header>
       </div>
