@@ -1,7 +1,7 @@
 ---
 title: 'Unbricking a $100 android tablet using Stubbornness'
 slug: 'unbricking-a-lenovo-tab'
-description: 'A chronicle of trying every possible approach to bypass FRP on a Unisoc T610 tablet from macOS + including USB protocol hacking'
+description: 'A chronicle of trying every possible approach to bypass FRP on a Unisoc T610 tablet from macOS, including USB protocol hacking'
 date: 2026-03-07
 published: true
 author:
@@ -21,7 +21,11 @@ TLDR: the tablet is now functional but still FRP-locked. So it's still very much
 
 ## Identifying the hardware
 
-First problem: nobody knew what chipset was in this thing. Initial guesses were Qualcomm or MediaTek, both wrong. It's a Unisoc Tiger T610 (UMS512, also called SharkL5Pro). That matters a lot because Unisoc uses a completely different flashing protocol called Spreadtrum BSL, and the tooling ecosystem is much thinner than Qualcomm's EDL or MediaTek's BROM.
+First problem: nobody knew what chipset was in this thing. Initial guesses were Qualcomm or MediaTek, both wrong. It's a Unisoc Tiger T610 (UMS512, also called SharkL5Pro). This basically exists because some exec thought having a $13 per unit cost for an ARM CPU was just too much. Somewhere in rural Yunnan on the 2022-05-04th there was some guy working on a manual PCB machine making this specific one.
+
+That matters a lot because Unisoc uses a completely different flashing protocol called Spreadtrum BSL, and the tooling ecosystem is much thinner than Qualcomm's EDL or MediaTek's BROM.
+
+An [XDA thread about a bricked T610 tablet](https://xdaforums.com/t/bricked-unknown-unisoc-t610-tablet.4674958/) with the same motherboard confirmed the chipset identification and pointed to the Spreadtrum download mode as the way in.
 
 The device was already entering Spreadtrum download mode automatically when plugged in:
 
@@ -50,6 +54,8 @@ sys.usb.controller=musb-hdrc.0.auto
 
 The FRP partition is `persist`. The device uses A/B partitions (current slot: `a`). OEM unlock is supported in principle. All good signs, in theory.
 
+[Passware's Unisoc test point documentation](https://support.passware.com/hc/en-us/articles/22372229519383) was referenced for the board layout, though test point flashing wasn't needed since the device entered download mode on its own.
+
 ---
 
 ## The macOS USB dead end
@@ -58,17 +64,19 @@ The Spreadtrum BSL protocol works over USB bulk transfers. The host sends FDL1, 
 
 Two forks of `spd_dump` were tried:
 
-**ilyakurdyukov fork:**
+**[ilyakurdyukov fork](https://github.com/ilyakurdyukov/spreadtrum_flash):**
 ```
 libusb_open_device failed
 ```
 
-**TomKing062 fork:**
+**[TomKing062 fork](https://github.com/TomKing062/spreadtrum_flash):**
 ```
 CHECK_BAUD timeout
 ```
 
-Both fail at the USB layer. To figure out whether this was a driver conflict or something deeper, a custom diagnostic tool was written:
+Other Spreadtrum flash alternatives were also evaluated — [iscle's sprd-flash](https://github.com/iscle/sprd-flash) (a WebUSB implementation) and [sprdclient](https://github.com/iscle/sprdclient) — but none got any further.
+
+All of them fail at the USB layer. To figure out whether this was a driver conflict or something deeper, a custom diagnostic tool was written:
 
 ```c
 // usb_connect.c — probes the Spreadtrum download mode interface
@@ -342,9 +350,13 @@ fastboot flashing unlock
 # Confirm on tablet screen — this wipes all data
 ```
 
+Alternatively, TomKing062's [CVE-2022-38694 bootloader unlock exploit](https://github.com/TomKing062/CVE-2022-38694_unlock_bootloader) can bypass the OEM unlock requirement on Unisoc devices entirely, but it also requires download mode — which circles back to needing Linux.
+
 ### Step 4: Flash a GSI ROM
 
 There are two different fastboot modes on Unisoc. Hardware fastboot (vol-up + power button combo) and fastbootd (`fastboot reboot fastboot`). Logical partition operations require fastbootd.
+
+The procedure below follows [fu8765's GSI flashing guide](https://github.com/fu8765/Lenovo-Tab-M10-Plug-Gen-3-FlashiGSI-roms) adapted for this specific tablet.
 
 ```bash
 # From Android with USB debugging:
@@ -377,6 +389,8 @@ fastboot -w
 fastboot reboot
 ```
 
+ROMs were selected from [phhusson's GSI list](https://github.com/phhusson/treble_experimentations/wiki/Generic-System-Image-(GSI)-list):
+
 **Confirmed working:** Project Elixir v4.2 (Android 14, `arm64_bgN`)
 
 **Also works:** LineageOS 21 by Andy Yan (Android 14, `arm64_bvN`)
@@ -393,10 +407,12 @@ Windows with SPD Flash Tool also works natively.
 
 ---
 
-## Where things stand
+## Some mediocre results
 
-The tablet works. It's stuck behind FRP. Every software approach and every USB approach available without a Linux PC or rooted Android phone has been exhausted. The Termux approach on the Pixel 7 Pro got further than expected, but Android's kernel USB security is a hard wall without root.
+The tablet barely works. It's stuck behind FRP. Every software approach and every USB approach available without a Linux PC or rooted Android phone has been exhausted. The Termux approach on the Pixel 7 Pro got further than expected, but Android's kernel USB security is a hard wall without root.
 
-The full procedure is documented. The firmware is extracted. The spd_dump patches are written. If you have a Linux machine or a rooted phone, you can finish this in about ten minutes.
+If you ever feel the need to debug a early 2020s budget android tablet, be assured that the full procedure is documented. The firmware is extracted. The spd_dump patches are written. If you have a Linux machine or a rooted phone, you can finish this in about ten minutes.
 
 All the tools and firmware files are at [github.com/t3nsed/lenovo-tab-m10-unbrick](https://github.com/t3nsed/lenovo-tab-m10-unbrick).
+
+Good luck to you, just set a timer because working on this is kind of addicting. Huge warning ;)
