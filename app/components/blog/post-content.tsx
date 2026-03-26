@@ -39,7 +39,7 @@ function BlogLink({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLA
       href={href}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      className="group relative inline-flex w-fit select-none items-center font-normal text-foreground before:pointer-events-none before:absolute before:top-[1.5em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] before:content-[''] hover:before:origin-right hover:before:scale-x-100"
+      className="group relative inline-flex w-fit select-none items-center font-normal text-foreground before:pointer-events-none before:absolute before:top-[1.5em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,_0,_0.2,_1)] before:content-[''] hover:before:origin-right hover:before:scale-x-100"
       {...props}
     >
       <span>{children}</span>
@@ -66,7 +66,7 @@ function HeadingLink({ href, children, ...props }: React.AnchorHTMLAttributes<HT
   return (
     <a
       href={href}
-      className="group relative inline-flex w-fit select-none items-center text-foreground no-underline before:pointer-events-none before:absolute before:top-[1.5em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,0,0.2,1)] before:content-[''] hover:before:origin-right hover:before:scale-x-100"
+      className="group relative inline-flex w-fit select-none items-center text-foreground no-underline before:pointer-events-none before:absolute before:top-[1.5em] before:left-0 before:h-[0.05em] before:w-full before:origin-left before:scale-x-0 before:bg-current before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.4,_0,_0.2,_1)] before:content-[''] hover:before:origin-right hover:before:scale-x-100"
       {...props}
     >
       <span>{children}</span>

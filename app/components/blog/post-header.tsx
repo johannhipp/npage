@@ -21,7 +21,7 @@ export function PostHeader({ post }: { post: Post }) {
             rel="noopener noreferrer"
             className="group inline-flex w-fit cursor-pointer select-none items-center text-muted-foreground transition-colors hover:text-foreground"
           >
-            <span className="bg-[length:0%_0.05em] bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-no-repeat transition-[background-size] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] group-hover:bg-[length:100%_0.05em]">
+            <span className="bg-[length:0%_0.05em] bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-no-repeat transition-[background-size] duration-300 ease-[cubic-bezier(0.4,_0,_0.2,_1)] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] group-hover:bg-[length:100%_0.05em]">
               {post.author.name}
             </span>
             <svg

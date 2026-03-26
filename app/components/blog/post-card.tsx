@@ -16,7 +16,7 @@ export function PostCard({ post }: { post: Post }) {
         <time dateTime={post.date}>{formatDate(post.date)}</time>
       </div>
       <h2 className="mb-2 font-noto-serif font-semibold text-xl">
-        <span className="bg-[length:0%_0.05em] bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-no-repeat transition-[background-size] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] group-hover:bg-[length:100%_0.05em]">
+        <span className="bg-[length:0%_0.05em] bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-no-repeat transition-[background-size] duration-300 ease-[cubic-bezier(0.4,_0,_0.2,_1)] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] group-hover:bg-[length:100%_0.05em]">
           {post.title}
         </span>
         <svg

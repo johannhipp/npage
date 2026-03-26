@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export interface SplitTextProps {
   text: string;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   className?: string;
   stagger?: number;
 }
@@ -18,7 +18,7 @@ export function SplitText({
   stagger = 0.045,
   ...rest
 }: SplitTextProps) {
-  const Component = (as ?? "span") as keyof JSX.IntrinsicElements;
+  const Component = (as ?? "span") as keyof React.JSX.IntrinsicElements;
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {

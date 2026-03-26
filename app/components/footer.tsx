@@ -90,7 +90,7 @@ export function Footer() {
               <XIcon className="h-5 w-5" />
             </Link>
             <Link
-              href="https://github.com/t3nsed"
+              href="https://github.com/johannhipp"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-500 transition-colors hover:text-black"
