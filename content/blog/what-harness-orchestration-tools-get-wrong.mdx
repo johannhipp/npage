@@ -1,0 +1,24 @@
+---
+title: 'What Harness Orchestration Gets Wrong'
+slug: 'what-harness-orchestration-gets-wrong'
+description: ''
+date: 2026-03-29
+published: true
+author:
+  name: 'Johann'
+  url: 'https://x.com/jhipp_'
+tags:
+  - personal
+  - reflection
+  - tools
+---
+
+There’s a reason most devs I know still keep a bunch of coding agents open at once, tiled with `tmux` or `kitty` or whatever else. Possibly one editor open for quick reviews or env file changes. This setup is not intentional - each dev develops these on their own, yet at the end they do look oddly similar. Yet these work better than most agent orchestration tools.
+
+What these tools miss is the way a lot of devs actually work: messy, high impact, lots of improvisation; multiple agents moving through the same git state, possibly with only a few lines of code between them. 
+
+An example: one agent is parsing biome errors from a previous task, another next creates new UI mockups since the current design is pretty unintuitive, a 3rd aligns all the buttons with our internal design kit, a 4th one is using `cmux browser` to click through all clickable elements on the page to help me figure out what functionality I might have completely forgot about. Yet I'm still in the same workspace clicking through UI of the same hot reloading next server. No separate PRs, no merge conflicts and deployed on railway so I can send around the vercel preview for anyone in the team to see what it will look like.
+
+If you build a harness orchestration that pushes people into a lower intensity flow, with a separate worktree (that never copies any important env files over) and startup/teardown ritual for every task that never seems to work out of the box, you’ll mostly end up serving teams that are already further along. The ones with traction, consistent traffic to a production environment they can’t afford to mess up, and a process where every change ideally needs to get reviewed by another agent, possibly a LGTM from another dev.
+
+Most users aren’t there yet. I'd say close to possibly 95% of your users. They’re hobbyists working on side projects, solo founders building something that hasn't been deployed anywhere, or seed stage teams turning a rough demo into an MVP. As soon as they feel your tool slows them down even by just 10% or seems too tiring to set up, they're out.
