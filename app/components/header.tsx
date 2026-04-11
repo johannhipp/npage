@@ -9,12 +9,12 @@ export function Header() {
   return (
     <header className="fixed top-0 right-0 left-0 z-50 bg-transparent">
       <div className="container mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4">
-        <Link href="/" className="transition-transform duration-150 hover:scale-[1.05]">
+        <Link href="/" className="rounded-full px-4 py-2 backdrop-blur-md bg-white/30  transition-transform duration-150 hover:scale-[1.05]">
           <span className="font-[family-name:var(--font-noto-serif)] font-bold text-black text-lg hover:opacity-80">
             Johann Hipp
           </span>
         </Link>
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-baseline gap-3 rounded-full px-2 py-1 backdrop-blur-md bg-white/30 ">
           <Link href="/blog" className="px-4 py-2 font-medium text-black text-sm transition-transform duration-150 hover:scale-[1.15]">
             Blog
           </Link>
